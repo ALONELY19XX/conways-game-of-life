@@ -1,50 +1,21 @@
-#include <print>
-#include <iostream>
+#include "game_of_life.h"
 
-#include <SDL3/SDL.h>
 
 int main() {
-   std::println("** Conway's Game of Life **");
+   GameOfLife game{};
 
-   if (!SDL_Init(SDL_INIT_VIDEO)) {
-      std::println(stderr, "Failed to initialize SDL {}", SDL_GetError());
-      return 1;
+   // Spawn some patterns on the grid
+   game.spawn_gosper_glider_gun(5, 20);
+   game.spawn_glider(30, 10);
+   game.spawn_glider(30, 35);
+   game.spawn_glider(20, 70);
+   game.spawn_pulsar(25, 80);
+   game.spawn_pulsar(20, 90);
+   game.spawn_pulsar(15, 70);
+
+   if (game.init()) {
+      game.run();
    }
-
-   SDL_Window* window;
-   SDL_Renderer* renderer;
-
-   if (!SDL_CreateWindowAndRenderer(
-      "Conway's Game of Life",
-      640, 480,
-      0,
-      &window, &renderer
-   )) {
-      std::println(stderr, "Failed to initialize SDL Window and Renderer {}", SDL_GetError());
-      return 1;
-   }
-
-   bool running = true;
-
-   while (running) {
-      SDL_Event event;
-      while (SDL_PollEvent(&event)) {
-         if (event.type == SDL_EVENT_QUIT) {
-            running = false;
-         }
-      }
-
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-      SDL_RenderClear(renderer);
-
-      SDL_RenderPresent(renderer);
-
-      SDL_Delay(1000 / 30);
-   }
-
-   SDL_DestroyRenderer(renderer);
-   SDL_DestroyWindow(window);
-   SDL_Quit();
 
    return 0;
 }

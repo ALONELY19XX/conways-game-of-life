@@ -1,2 +1,4 @@
-# conways-game-of-life
-Conway's Game of Life implemented in C++23 using SDL3
+# Conway's Game of Life
+
+A simple implementation of Conway's Game using C++23 and SDL3.
+
