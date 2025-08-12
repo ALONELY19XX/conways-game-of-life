@@ -6,17 +6,19 @@
 
 
 GameOfLife::GameOfLife() :
-   window{nullptr},
-   renderer{nullptr},
-   current_grid{},
-   next_grid{},
+   window{nullptr}, renderer{nullptr},
+   front_grid{}, back_grid{},
    is_running{false},
-   last_update_time{0} {}
+   last_update_time{0} {
+   front_grid.fill({.is_alive = false});
+   back_grid.fill({.is_alive = false});
+}
 
 
 GameOfLife::~GameOfLife() {
    cleanup();
 }
+
 
 /**
  * Initialization of Video Subsystem, as well as Window and Renderer.
@@ -74,8 +76,7 @@ void GameOfLife::handle_events() {
 
 
 /**
- * If the last recorded update timestamp lies at least `FRAME_TIME` milliseconds in the past,
- * we update it by setting it to the current (frame) timestamp.
+ * Update game state in roughly `FRAME_TIME` millisecond steps
  */
 void GameOfLife::update() {
    const uint64_t current_time = SDL_GetTicks();
@@ -88,15 +89,20 @@ void GameOfLife::update() {
 }
 
 
-void GameOfLife::render() {
+/**
+ * Render current generation/state of the game
+ */
+void GameOfLife::render() const {
+   // Black background
    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xff);
    SDL_RenderClear(renderer);
 
+   // Living cells will be drawn as white squares
    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
 
-   for (int y{0}; y < GRID_ROWS; ++y) {
-      for (int x{0}; x < GRID_COLS; ++x) {
-         if (current_grid[x + y * GRID_COLS]) {
+   for (int y = 0; y < GRID_ROWS; ++y) {
+      for (int x = 0; x < GRID_COLS; ++x) {
+         if (front_grid[x + y * GRID_COLS].is_alive) {
             SDL_FRect rect{
                .x = static_cast<float>(x * CELL_SIZE),
                .y = static_cast<float>(y * CELL_SIZE),
@@ -143,27 +149,53 @@ void GameOfLife::cleanup() {
    SDL_Quit();
 }
 
+
+/**
+ * Swap front and back grid
+ */
 void GameOfLife::swap_grids() {
-   std::swap(current_grid, next_grid);
+   std::swap(front_grid, back_grid);
 }
 
-int GameOfLife::count_alive_neighbors(int x, int y) {
+
+/**
+ * Count living neighbors by checking all surrounding cells
+ */
+int GameOfLife::count_alive_neighbors(int gridX, int gridY) const {
    int count = 0;
 
-   for (int dy = -1; dy <= 1; ++dy) {
-      for (int dx = -1; dx <= 1; ++dx) {
-         if (dx == 0 && dy == 0) continue; // Skip the cell itself
+   for (int y = -1; y <= 1; ++y) {
+      for (int x = -1; x <= 1; ++x) {
 
-         int nx = x + dx;
-         int ny = y + dy;
+         // Skip the cell itself
+         if (x == 0 && y == 0) {
+            continue;
+         }
 
-         // Wrap around (toroidal topology)
-         if (nx < 0) nx = GRID_COLS - 1;
-         if (nx >= GRID_COLS) nx = 0;
-         if (ny < 0) ny = GRID_ROWS - 1;
-         if (ny >= GRID_ROWS) ny = 0;
+         int tx = gridX + x;
+         int ty = gridY + y;
 
-         if (current_grid[nx + ny * GRID_COLS]) {
+         // Wrap around the grid horizontally (wrap left to right)
+         if (tx < 0) {
+            tx = GRID_COLS - 1;
+         }
+
+         // Wrap around the grid horizontally (wrap right to left)
+         if (tx >= GRID_COLS) {
+            tx = 0;
+         }
+
+         // Wrap around the grid vertically (wrap top to bottom)
+         if (ty < 0) {
+            ty = GRID_ROWS - 1;
+         }
+
+         // Wrap around the grid vertically (wrap bottom to top)
+         if (ty >= GRID_ROWS) {
+            ty = 0;
+         }
+
+         if (front_grid[tx + ty * GRID_COLS].is_alive) {
             count++;
          }
       }
@@ -173,21 +205,22 @@ int GameOfLife::count_alive_neighbors(int x, int y) {
 }
 
 
+/**
+ * Calculate the next generation of game state by applying Game of Life ruleset to each cell individually
+ */
 void GameOfLife::update_grid() {
-   // Calculate next generation
    for (int y = 0; y < GRID_ROWS; ++y) {
       for (int x = 0; x < GRID_COLS; ++x) {
          const int neighbors = count_alive_neighbors(x, y);
-         const bool current_state = current_grid[x + y * GRID_COLS];
+         const bool is_alive = front_grid[x + y * GRID_COLS].is_alive;
 
-         // Conway's Game of Life rules
-         if (current_state) {
+         if (is_alive) {
             // Live cell survives with 2 or 3 neighbors
-            next_grid[x + y * GRID_COLS] = (neighbors == 2 || neighbors == 3);
+            back_grid[x + y * GRID_COLS].is_alive = (neighbors == 2 || neighbors == 3);
          }
          else {
             // Dead cell becomes alive with exactly 3 neighbors
-            next_grid[x + y * GRID_COLS] = (neighbors == 3);
+            back_grid[x + y * GRID_COLS].is_alive = (neighbors == 3);
          }
       }
    }
@@ -196,21 +229,28 @@ void GameOfLife::update_grid() {
 }
 
 
-void GameOfLife::spawn_glider(int x, int y) {
+/**
+ * Spawn Glider pattern into the grid
+ */
+void GameOfLife::spawn_glider(int gridX, int gridY) {
    std::vector<std::pair<int, int>> pattern{
       {1, 0}, {2, 1}, {0, 2}, {1, 2}, {2, 2}
    };
 
-   for (auto [dx, dy] : pattern) {
-      int xPos = x + dx;
-      int yPos = y + dy;
-      if (xPos >= 0 && xPos < GRID_COLS && yPos >= 0 && yPos < GRID_ROWS) {
-         current_grid[xPos + yPos * GRID_COLS] = true;
+   for (auto [x, y] : pattern) {
+      const int tx = gridX + x;
+      const int ty = gridY + y;
+      if (tx >= 0 && tx < GRID_COLS && ty >= 0 && ty < GRID_ROWS) {
+         front_grid[tx + ty * GRID_COLS].is_alive = true;
       }
    }
 }
 
-void GameOfLife::spawn_gosper_glider_gun(int startX, int startY) {
+
+/**
+ * Spawn Gosper Glider Gun pattern into the grid
+ */
+void GameOfLife::spawn_gosper_glider_gun(int gridX, int gridY) {
    std::vector<std::pair<int, int>> pattern = {
       {24, 0}, {22, 1}, {24, 1}, {12, 2}, {13, 2}, {20, 2}, {21, 2}, {34, 2}, {35, 2},
       {11, 3}, {15, 3}, {20, 3}, {21, 3}, {34, 3}, {35, 3}, {0, 4}, {1, 4}, {10, 4},
@@ -218,16 +258,20 @@ void GameOfLife::spawn_gosper_glider_gun(int startX, int startY) {
       {22, 5}, {24, 5}, {10, 6}, {16, 6}, {24, 6}, {11, 7}, {15, 7}, {12, 8}, {13, 8}
    };
 
-   for (auto [dx, dy] : pattern) {
-      int x = startX + dx;
-      int y = startY + dy;
-      if (x >= 0 && x < GRID_COLS && y >= 0 && y < GRID_ROWS) {
-         current_grid[x + y * GRID_COLS] = true;
+   for (auto [x, y] : pattern) {
+      const int tx = gridX + x;
+      const int ty = gridY + y;
+      if (tx >= 0 && tx < GRID_COLS && ty >= 0 && ty < GRID_ROWS) {
+         front_grid[tx + ty * GRID_COLS].is_alive = true;
       }
    }
 }
 
-void GameOfLife::spawn_pulsar(int startX, int startY) {
+
+/**
+ * Spawn Pulsar pattern into the grid
+ */
+void GameOfLife::spawn_pulsar(int gridX, int gridY) {
    std::vector<std::pair<int, int>> pattern = {
       {2, 0}, {3, 0}, {4, 0}, {8, 0}, {9, 0}, {10, 0},
       {0, 2}, {5, 2}, {7, 2}, {12, 2},
@@ -241,11 +285,11 @@ void GameOfLife::spawn_pulsar(int startX, int startY) {
       {2, 12}, {3, 12}, {4, 12}, {8, 12}, {9, 12}, {10, 12}
    };
 
-   for (auto [dx, dy] : pattern) {
-      int x = startX + dx;
-      int y = startY + dy;
-      if (x >= 0 && x < GRID_COLS && y >= 0 && y < GRID_ROWS) {
-         current_grid[x + y * GRID_COLS] = true;
+   for (auto [x, y] : pattern) {
+      const int tx = gridX + x;
+      const int ty = gridY + y;
+      if (tx >= 0 && tx < GRID_COLS && ty >= 0 && ty < GRID_ROWS) {
+         front_grid[tx + ty * GRID_COLS].is_alive = true;
       }
    }
 }
