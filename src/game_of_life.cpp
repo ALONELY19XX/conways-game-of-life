@@ -1,8 +1,10 @@
 #include <print>
 #include <utility>
 #include <vector>
+#include <span>
 
 #include "game_of_life.h"
+
 
 
 GameOfLife::GameOfLife() :
@@ -166,7 +168,6 @@ int GameOfLife::count_alive_neighbors(int gridX, int gridY) const {
 
    for (int y = -1; y <= 1; ++y) {
       for (int x = -1; x <= 1; ++x) {
-
          // Skip the cell itself
          if (x == 0 && y == 0) {
             continue;
@@ -230,13 +231,9 @@ void GameOfLife::update_grid() {
 
 
 /**
- * Spawn Glider pattern into the grid
+ * Spawn a given pattern on a specific position on the grid
  */
-void GameOfLife::spawn_glider(int gridX, int gridY) {
-   std::vector<std::pair<int, int>> pattern{
-      {1, 0}, {2, 1}, {0, 2}, {1, 2}, {2, 2}
-   };
-
+void GameOfLife::spawn(std::span<std::pair<int, int>> pattern, int gridX, int gridY) {
    for (auto [x, y] : pattern) {
       const int tx = gridX + x;
       const int ty = gridY + y;
@@ -244,6 +241,18 @@ void GameOfLife::spawn_glider(int gridX, int gridY) {
          front_grid[tx + ty * GRID_COLS].is_alive = true;
       }
    }
+}
+
+
+/**
+ * Spawn Glider pattern into the grid
+ */
+void GameOfLife::spawn_glider(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern{
+      {1, 0}, {2, 1}, {0, 2}, {1, 2}, {2, 2}
+   };
+
+   spawn(pattern, gridX, gridY);
 }
 
 
@@ -258,13 +267,7 @@ void GameOfLife::spawn_gosper_glider_gun(int gridX, int gridY) {
       {22, 5}, {24, 5}, {10, 6}, {16, 6}, {24, 6}, {11, 7}, {15, 7}, {12, 8}, {13, 8}
    };
 
-   for (auto [x, y] : pattern) {
-      const int tx = gridX + x;
-      const int ty = gridY + y;
-      if (tx >= 0 && tx < GRID_COLS && ty >= 0 && ty < GRID_ROWS) {
-         front_grid[tx + ty * GRID_COLS].is_alive = true;
-      }
-   }
+   spawn(pattern, gridX, gridY);
 }
 
 
@@ -285,11 +288,121 @@ void GameOfLife::spawn_pulsar(int gridX, int gridY) {
       {2, 12}, {3, 12}, {4, 12}, {8, 12}, {9, 12}, {10, 12}
    };
 
-   for (auto [x, y] : pattern) {
-      const int tx = gridX + x;
-      const int ty = gridY + y;
-      if (tx >= 0 && tx < GRID_COLS && ty >= 0 && ty < GRID_ROWS) {
-         front_grid[tx + ty * GRID_COLS].is_alive = true;
-      }
-   }
+   spawn(pattern, gridX, gridY);
+}
+
+
+/**
+ * Spawn Block pattern into the grid
+ */
+void GameOfLife::spawn_block(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern = {
+      {0, 0}, {1, 0}, {0, 1}, {1, 1}
+   };
+
+   spawn(pattern, gridX, gridY);
+}
+
+
+/**
+ * Spawn Beehive pattern into the grid
+ */
+void GameOfLife::spawn_beehive(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern = {
+      {1, 0}, {2, 0}, {0, 1}, {3, 1}, {1, 2}, {2, 2}
+   };
+
+   spawn(pattern, gridX, gridY);
+}
+
+
+/**
+ * Spawn Blinker pattern into the grid
+ */
+void GameOfLife::spawn_blinker(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern = {
+      {0, 0}, {1, 0}, {2, 0}
+   };
+
+   spawn(pattern, gridX, gridY);
+}
+
+
+/**
+ * Spawn Toad pattern into the grid
+ */
+void GameOfLife::spawn_toad(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern = {
+      {1, 0}, {2, 0}, {3, 0}, {0, 1}, {1, 1}, {2, 1}
+   };
+
+   spawn(pattern, gridX, gridY);
+}
+
+
+/**
+ * Spawn Loaf pattern into the grid
+ */
+void GameOfLife::spawn_loaf(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern = {
+      {1, 0}, {2, 0},
+      {0, 1}, {3, 1},
+      {1, 2}, {3, 2},
+      {2, 3}
+   };
+
+   spawn(pattern, gridX, gridY);
+}
+
+
+/**
+ * Spawn Boat pattern into the grid
+ */
+void GameOfLife::spawn_boat(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern = {
+      {0, 0}, {1, 0},
+      {0, 1}, {2, 1},
+      {1, 2}
+   };
+
+   spawn(pattern, gridX, gridY);
+}
+
+
+/**
+ * Spawn Beacon pattern into the grid
+ */
+void GameOfLife::spawn_beacon(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern = {
+      {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0},
+      {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}, {6, 1}, {7, 1}, {8, 1},
+      {0, 2}, {1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}, {6, 2}, {7, 2}, {8, 2},
+      {0, 3}, {1, 3}, {2, 3}, {3, 3}, {4, 3}, {5, 3}, {6, 3}, {7, 3}, {8, 3},
+   };
+
+   spawn(pattern, gridX, gridY);
+}
+
+
+/**
+ * Spawn R-Pentomino pattern into the grid
+ */
+void GameOfLife::spawn_r_pentomino(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern = {
+      {1, 0}, {2, 0}, {0, 1}, {1, 1}, {1, 2}
+   };
+
+   spawn(pattern, gridX, gridY);
+}
+
+
+/**
+ * Spawn Acorn pattern into the grid
+ */
+void GameOfLife::spawn_acorn(int gridX, int gridY) {
+   std::vector<std::pair<int, int>> pattern = {
+      {1, 0}, {3, 1}, {0, 2}, {1, 2}, {4, 2}, {5, 2}, {6, 2}
+   };
+
+   spawn(pattern, gridX, gridY);
 }
