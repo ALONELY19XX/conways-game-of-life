@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <span>
 
 #include <SDL3/SDL.h>
 
@@ -31,6 +32,16 @@ public:
    void spawn_glider(int gridX, int gridY);
    void spawn_gosper_glider_gun(int gridX, int gridY);
    void spawn_pulsar(int gridX, int gridY);
+   void spawn_block(int gridX, int gridY);
+   void spawn_beehive(int gridX, int gridY);
+   void spawn_blinker(int gridX, int gridY);
+   void spawn_toad(int gridX, int gridY);
+   void spawn_loaf(int gridX, int gridY);
+   void spawn_boat(int gridX, int gridY);
+   void spawn_beacon(int gridX, int gridY);
+   void spawn_r_pentomino(int gridX, int gridY);
+   void spawn_acorn(int gridX, int gridY);
+
 
 private:
    SDL_Window* window;
@@ -51,4 +62,6 @@ private:
    void wait_remaining_frame_time() const;
 
    int count_alive_neighbors(int gridX, int gridY) const;
+
+   void spawn(std::span<std::pair<int, int>> pattern, int gridX, int gridY);
 };
