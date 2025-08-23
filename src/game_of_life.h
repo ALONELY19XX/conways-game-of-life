@@ -42,7 +42,6 @@ public:
    void spawn_r_pentomino(int gridX, int gridY);
    void spawn_acorn(int gridX, int gridY);
 
-
 private:
    SDL_Window* window;
    SDL_Renderer* renderer;
@@ -63,5 +62,5 @@ private:
 
    int count_alive_neighbors(int gridX, int gridY) const;
 
-   void spawn(std::span<std::pair<int, int>> pattern, int gridX, int gridY);
+   void spawn(std::span<const std::pair<int, int>> pattern, int gridX, int gridY);
 };
