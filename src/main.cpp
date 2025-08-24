@@ -1,7 +1,7 @@
 #include "game_of_life.h"
 
 
-int main() {
+auto main() -> int {
    GameOfLife game{};
 
    // Spawn some patterns on the grid

@@ -6,13 +6,12 @@
 
 
 GameOfLife::GameOfLife() :
-   window{nullptr}, renderer{nullptr},
-   front_grid{}, back_grid{},
+   window{nullptr},
+   renderer{nullptr},
+   front_grid{},
+   back_grid{},
    is_running{false},
-   last_update_time{0} {
-   front_grid.fill({.is_alive = false});
-   back_grid.fill({.is_alive = false});
-}
+   last_update_time{0} {}
 
 
 GameOfLife::~GameOfLife() {
@@ -24,7 +23,7 @@ GameOfLife::~GameOfLife() {
  * Initialization of Video Subsystem, as well as Window and Renderer.
  * Return value indicates success/failure of initialization.
  */
-bool GameOfLife::init() {
+auto GameOfLife::init() -> bool {
    if (!SDL_Init(SDL_INIT_VIDEO)) {
       std::println(stderr, "[ERROR] Failed to initialize SDL: {}", SDL_GetError());
       return false;
@@ -50,7 +49,7 @@ bool GameOfLife::init() {
 /**
  * Game loop
  */
-void GameOfLife::run() {
+auto GameOfLife::run() -> void {
    while (is_running) {
       handle_events();
       update();
@@ -64,7 +63,7 @@ void GameOfLife::run() {
 /**
  * Event polling and handling
  */
-void GameOfLife::handle_events() {
+auto GameOfLife::handle_events() -> void {
    SDL_Event event;
    while (SDL_PollEvent(&event)) {
       if (event.type == SDL_EVENT_QUIT) {
@@ -78,7 +77,7 @@ void GameOfLife::handle_events() {
 /**
  * Update game state in roughly `FRAME_TIME` millisecond steps
  */
-void GameOfLife::update() {
+auto GameOfLife::update() -> void {
    const uint64_t current_time = SDL_GetTicks();
    const uint64_t delta_time = current_time - last_update_time;
 
@@ -92,7 +91,7 @@ void GameOfLife::update() {
 /**
  * Render current generation/state of the game
  */
-void GameOfLife::render() const {
+auto GameOfLife::render() const -> void {
    // Black background
    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xff);
    SDL_RenderClear(renderer);
@@ -122,7 +121,7 @@ void GameOfLife::render() const {
  * To ensure fixed/stable update frequency, we will wait at the end of each tick
  * in case the current iteration finished faster than the target frame time (likely).
  */
-void GameOfLife::wait_remaining_frame_time() const {
+auto GameOfLife::wait_remaining_frame_time() const -> void {
    const uint64_t current_time{SDL_GetTicks()};
    const uint64_t delta_time{current_time - last_update_time};
 
@@ -135,7 +134,7 @@ void GameOfLife::wait_remaining_frame_time() const {
 /**
  * Cleanup SDL3-related resources
  */
-void GameOfLife::cleanup() {
+auto GameOfLife::cleanup() -> void {
    if (renderer) {
       SDL_DestroyRenderer(renderer);
       renderer = nullptr;
@@ -153,7 +152,7 @@ void GameOfLife::cleanup() {
 /**
  * Swap front and back grid
  */
-void GameOfLife::swap_grids() {
+auto GameOfLife::swap_grids() -> void {
    std::swap(front_grid, back_grid);
 }
 
@@ -161,7 +160,7 @@ void GameOfLife::swap_grids() {
 /**
  * Count living neighbors by checking all surrounding cells
  */
-int GameOfLife::count_alive_neighbors(int gridX, int gridY) const {
+auto GameOfLife::count_alive_neighbors(int gridX, int gridY) const -> int {
    int count = 0;
 
    for (int y = -1; y <= 1; ++y) {
@@ -207,7 +206,7 @@ int GameOfLife::count_alive_neighbors(int gridX, int gridY) const {
 /**
  * Calculate the next generation of game state by applying Game of Life ruleset to each cell individually
  */
-void GameOfLife::update_grid() {
+auto GameOfLife::update_grid() -> void {
    for (int y = 0; y < GRID_ROWS; ++y) {
       for (int x = 0; x < GRID_COLS; ++x) {
          const int neighbors = count_alive_neighbors(x, y);
@@ -231,7 +230,7 @@ void GameOfLife::update_grid() {
 /**
  * Spawn a given pattern on a specific position on the grid
  */
-void GameOfLife::spawn(std::span<const std::pair<int, int>> pattern, int gridX, int gridY) {
+auto GameOfLife::spawn(std::span<const std::pair<int, int>> pattern, int gridX, int gridY) -> void {
    for (auto [x, y] : pattern) {
       const int tx = gridX + x;
       const int ty = gridY + y;
@@ -245,7 +244,7 @@ void GameOfLife::spawn(std::span<const std::pair<int, int>> pattern, int gridX, 
 /**
  * Spawn Glider pattern into the grid
  */
-void GameOfLife::spawn_glider(int gridX, int gridY) {
+auto GameOfLife::spawn_glider(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 5> pattern{
       {{1, 0}, {2, 1}, {0, 2}, {1, 2}, {2, 2}}
    };
@@ -257,7 +256,7 @@ void GameOfLife::spawn_glider(int gridX, int gridY) {
 /**
  * Spawn Gosper Glider Gun pattern into the grid
  */
-void GameOfLife::spawn_gosper_glider_gun(int gridX, int gridY) {
+auto GameOfLife::spawn_gosper_glider_gun(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 36> pattern{
       {
          {24, 0}, {22, 1}, {24, 1}, {12, 2}, {13, 2}, {20, 2},
@@ -276,7 +275,7 @@ void GameOfLife::spawn_gosper_glider_gun(int gridX, int gridY) {
 /**
  * Spawn Pulsar pattern into the grid
  */
-void GameOfLife::spawn_pulsar(int gridX, int gridY) {
+auto GameOfLife::spawn_pulsar(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 48> pattern{
       {
          {2, 0}, {3, 0}, {4, 0}, {8, 0}, {9, 0}, {10, 0},
@@ -297,7 +296,7 @@ void GameOfLife::spawn_pulsar(int gridX, int gridY) {
 /**
  * Spawn Block pattern into the grid
  */
-void GameOfLife::spawn_block(int gridX, int gridY) {
+auto GameOfLife::spawn_block(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 4> pattern{
       {{0, 0}, {1, 0}, {0, 1}, {1, 1}}
    };
@@ -309,7 +308,7 @@ void GameOfLife::spawn_block(int gridX, int gridY) {
 /**
  * Spawn Beehive pattern into the grid
  */
-void GameOfLife::spawn_beehive(int gridX, int gridY) {
+auto GameOfLife::spawn_beehive(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 6> pattern{
       {{1, 0}, {2, 0}, {0, 1}, {3, 1}, {1, 2}, {2, 2}}
    };
@@ -321,7 +320,7 @@ void GameOfLife::spawn_beehive(int gridX, int gridY) {
 /**
  * Spawn Blinker pattern into the grid
  */
-void GameOfLife::spawn_blinker(int gridX, int gridY) {
+auto GameOfLife::spawn_blinker(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 3> pattern{
       {{0, 0}, {1, 0}, {2, 0}}
    };
@@ -333,7 +332,7 @@ void GameOfLife::spawn_blinker(int gridX, int gridY) {
 /**
  * Spawn Toad pattern into the grid
  */
-void GameOfLife::spawn_toad(int gridX, int gridY) {
+auto GameOfLife::spawn_toad(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 6> pattern{
       {{1, 0}, {2, 0}, {3, 0}, {0, 1}, {1, 1}, {2, 1}}
    };
@@ -345,7 +344,7 @@ void GameOfLife::spawn_toad(int gridX, int gridY) {
 /**
  * Spawn Loaf pattern into the grid
  */
-void GameOfLife::spawn_loaf(int gridX, int gridY) {
+auto GameOfLife::spawn_loaf(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 7> pattern{
       {{1, 0}, {2, 0}, {0, 1}, {3, 1}, {1, 2}, {3, 2}, {2, 3}}
    };
@@ -357,7 +356,7 @@ void GameOfLife::spawn_loaf(int gridX, int gridY) {
 /**
  * Spawn Boat pattern into the grid
  */
-void GameOfLife::spawn_boat(int gridX, int gridY) {
+auto GameOfLife::spawn_boat(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 5> pattern{
       {{0, 0}, {1, 0}, {0, 1}, {2, 1}, {1, 2}}
    };
@@ -369,7 +368,7 @@ void GameOfLife::spawn_boat(int gridX, int gridY) {
 /**
  * Spawn Beacon pattern into the grid
  */
-void GameOfLife::spawn_beacon(int gridX, int gridY) {
+auto GameOfLife::spawn_beacon(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 6> pattern{
       {{0, 0}, {1, 0}, {0, 1}, {3, 2}, {2, 3}, {3, 3}}
    };
@@ -381,7 +380,7 @@ void GameOfLife::spawn_beacon(int gridX, int gridY) {
 /**
  * Spawn R-Pentomino pattern into the grid
  */
-void GameOfLife::spawn_r_pentomino(int gridX, int gridY) {
+auto GameOfLife::spawn_r_pentomino(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 5> pattern{
       {{1, 0}, {2, 0}, {0, 1}, {1, 1}, {1, 2}}
    };
@@ -393,7 +392,7 @@ void GameOfLife::spawn_r_pentomino(int gridX, int gridY) {
 /**
  * Spawn Acorn pattern into the grid
  */
-void GameOfLife::spawn_acorn(int gridX, int gridY) {
+auto GameOfLife::spawn_acorn(int gridX, int gridY) -> void {
    constexpr std::array<std::pair<int, int>, 7> pattern{
       {{1, 0}, {3, 1}, {0, 2}, {1, 2}, {4, 2}, {5, 2}, {6, 2}}
    };
