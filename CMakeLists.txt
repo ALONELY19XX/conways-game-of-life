@@ -18,8 +18,8 @@ add_executable(${TARGET_NAME})
 target_sources(${TARGET_NAME}
         PRIVATE
         src/main.cpp
-        src/game_of_life.cpp
-        src/game_of_life.h
+        src/GameOfLife.cpp
+        src/GameOfLife.h
 )
 
 target_link_libraries(${TARGET_NAME} SDL3::SDL3)

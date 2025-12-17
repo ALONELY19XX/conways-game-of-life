@@ -39,18 +39,18 @@ The universe of the Game of Life is an infinite, two-dimensional orthogonal grid
 
 ```c++
 // Example
-#include "game_of_life.h"
+#include "GameOfLife.h"
 
 int main() {
-  GameOfLife game{};
+  auto game = GameOfLife{};
   
-  game.spawn_gosper_glider_gun(5, 20);
-  game.spawn_glider(30, 10);
-  game.spawn_glider(30, 35);
-  game.spawn_glider(20, 70);
-  game.spawn_pulsar(25, 80);
-  game.spawn_pulsar(20, 90);
-  game.spawn_pulsar(15, 70);
+  game.spawn(Pattern::GosperGliderGun, 5, 20);
+  game.spawn(Pattern::Glider, 30, 10);
+  game.spawn(Pattern::Glider, 30, 35);
+  game.spawn(Pattern::Glider, 20, 70);
+  game.spawn(Pattern::Pulsar, 25, 80);
+  game.spawn(Pattern::Pulsar, 20, 90);
+  game.spawn(Pattern::Pulsar, 15, 70);
 
   if (game.init()) {
     game.run();
